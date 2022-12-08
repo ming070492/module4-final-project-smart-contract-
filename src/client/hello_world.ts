@@ -16,6 +16,8 @@ import path from 'path';
 import * as borsh from 'borsh';
 
 import {getPayer, getRpcUrl, createKeypairFromFile} from './utils';
+import { Buffer } from "buffer";
+import * as BufferLayout from '@solana/buffer-layout';
 
 /**
  * Connection to the network
@@ -60,10 +62,10 @@ const PROGRAM_KEYPAIR_PATH = path.join(PROGRAM_PATH, 'helloworld-keypair.json');
  * The state of a greeting account managed by the hello world program
  */
 class GreetingAccount {
-  counter = 0;
-  constructor(fields: {counter: number} | undefined = undefined) {
+  answer: string = '';
+  constructor(fields: {answer: string} | undefined = undefined) {
     if (fields) {
-      this.counter = fields.counter;
+      this.answer = fields.answer;
     }
   }
 }
@@ -72,15 +74,21 @@ class GreetingAccount {
  * Borsh schema definition for greeting accounts
  */
 const GreetingSchema = new Map([
-  [GreetingAccount, {kind: 'struct', fields: [['counter', 'u32']]}],
+  [GreetingAccount, {
+    kind: 'struct', 
+    fields: [
+      ['answer', 'String']
+    ]}],
 ]);
 
 /**
  * The expected size of each greeting account.
  */
+const sampleInput = new GreetingAccount();
+sampleInput.answer = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
 const GREETING_SIZE = borsh.serialize(
   GreetingSchema,
-  new GreetingAccount(),
+  sampleInput,
 ).length;
 
 /**
@@ -122,11 +130,11 @@ export async function establishPayer(): Promise<void> {
   }
 
   console.log(
-    'Using account',
+    'PAYER: ',
     payer.publicKey.toBase58(),
-    'containing',
+    '[BAL: ',
     lamports / LAMPORTS_PER_SOL,
-    'SOL to pay for fees',
+    'SOL]',
   );
 }
 
@@ -158,10 +166,10 @@ export async function checkProgram(): Promise<void> {
   } else if (!programInfo.executable) {
     throw new Error(`Program is not executable`);
   }
-  console.log(`Using program ${programId.toBase58()}`);
+  console.log(`PROGRAM ID: ${programId.toBase58()}`);
 
   // Derive the address (public key) of a greeting account from the program so that it's easy to find later.
-  const GREETING_SEED = 'hello';
+  const GREETING_SEED = 'henlo';
   greetedPubkey = await PublicKey.createWithSeed(
     payer.publicKey,
     GREETING_SEED,
@@ -195,16 +203,29 @@ export async function checkProgram(): Promise<void> {
   }
 }
 
+
+
 /**
  * Say hello
  */
-export async function sayHello(): Promise<void> {
-  console.log('Saying hello to', greetedPubkey.toBase58());
+export async function sayHello(num1: string, num2: string, op: string): Promise<void> {
+  let instruction_data_received:string = num1 + "!" + num2 + "!" + op;
+  console.log('PASSING INSTRUCTION DATA TO: ', programId.toBase58());
+  while(instruction_data_received.length < 30){
+    instruction_data_received = instruction_data_received + " ";
+    //console.log("currenly: ", instruction_data_received.length);
+  }
+  let instruction_to_greeting_account = new GreetingAccount();
+  instruction_to_greeting_account.answer = instruction_data_received;
+  //console.log(instruction_to_greeting_account.answer);
+  //console.log("final: " + instruction_data_received, " (", instruction_data_received.length, ")");
+  
   const instruction = new TransactionInstruction({
     keys: [{pubkey: greetedPubkey, isSigner: false, isWritable: true}],
     programId,
-    data: Buffer.alloc(0), // All instructions are hellos
+    data: Buffer.from(borsh.serialize(GreetingSchema, instruction_to_greeting_account)), // All instructions are hellos
   });
+  
   await sendAndConfirmTransaction(
     connection,
     new Transaction().add(instruction),
@@ -225,10 +246,19 @@ export async function reportGreetings(): Promise<void> {
     GreetingAccount,
     accountInfo.data,
   );
+
+  let computation_data = greeting.answer;
+  let computation_data_split = computation_data.split("!", 3);
+  let answer = 0;
+  let num1 = parseInt(computation_data_split[0]);
+  let num2 = parseInt(computation_data_split[1]);
+  let operation = computation_data_split[2].replace(/\s/g, "");
+  if(operation === "+") {
+    answer = num1 + num2;
+  }else{
+    answer = num1 - num2;
+  }
   console.log(
-    greetedPubkey.toBase58(),
-    'has been greeted',
-    greeting.counter,
-    'time(s)',
+    num1, operation, num2, "=", answer
   );
 }

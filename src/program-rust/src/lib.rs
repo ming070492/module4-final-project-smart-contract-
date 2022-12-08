@@ -12,19 +12,20 @@ use solana_program::{
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub struct GreetingAccount {
     /// number of greetings
-    pub counter: u32,
+    pub answer: String,
 }
 
 // Declare and export the program's entrypoint
 entrypoint!(process_instruction);
 
+//solana program deploy dist/program/helloworld.so
 // Program entrypoint's implementation
 pub fn process_instruction(
     program_id: &Pubkey, // Public key of the account the hello world program was loaded into
     accounts: &[AccountInfo], // The account to say hello to
-    _instruction_data: &[u8], // Ignored, all helloworld instructions are hellos
+    instruction_data: &[u8], // Ignored, all helloworld instructions are hellos
 ) -> ProgramResult {
-    msg!("Hello World Rust program entrypoint");
+    msg!("MODULE 4 - FINAL PROJECT [MING MANANGAN]");
 
     // Iterating accounts is safer than indexing
     let accounts_iter = &mut accounts.iter();
@@ -37,13 +38,35 @@ pub fn process_instruction(
         msg!("Greeted account does not have the correct program id");
         return Err(ProgramError::IncorrectProgramId);
     }
+    
+    //This will store all the data in the blockchain
+    let data = &mut &mut account.data.borrow_mut();
+    data[..instruction_data.len()].copy_from_slice(&instruction_data);
 
-    // Increment and store the number of times the account has been greeted
-    let mut greeting_account = GreetingAccount::try_from_slice(&account.data.borrow())?;
-    greeting_account.counter += 1;
-    greeting_account.serialize(&mut &mut account.data.borrow_mut()[..])?;
+    //let msg = GreetingAccount::deserialize(&mut instruction_data[..])?;
+    //msg!("INSTRUCTION DATA: {}", instruction_data.to_string());
+    //let mut data_received = GreetingAccount::try_from_slice(&account.data.borrow())?;
+    //greeting_account.counter += 1;
+    //greeting_account.serialize(&mut &mut account.data.borrow_mut()[..])?;
+    //let instruction_data_string = String::from_utf8(instruction_data).unwrap();
+    //let instruction_data_string_split: Vec<_> = instruction_data_string.split('!').collect();
+    /*let num1 = instruction_data_string_split[0].parse::<i32>().unwrap();
+    let num2 = instruction_data_string_split[1].parse::<i32>().unwrap();
 
-    msg!("Greeted {} time(s)!", greeting_account.counter);
+    let ans: i32 = match instruction_data_string_split[2] {
+        "+" => num1 + num2,
+        "-" => num1 - num2,
+        _ => 0,
+    };*/
+
+    //let mut greeting_account = GreetingAccount::try_from_slice(&account.data.borrow())?;
+    //greeting_account.answer = ans.to_string();
+    //greeting_account.answer = String::from("-1");
+    //greeting_account.serialize(&mut &mut account.data.borrow_mut()[..])?;
+
+    //msg!("DATA RECEIVED: {:?}", instruction_data_vector[1]);
+    //msg!("INSTRUCTION DATA: {:?}", instruction_data);
+    //msg!("FIRST NUMBER: {} || SECOND NUMBER: {} || OPERATION: {} || ANSWER: {}", instruction_data_string_split[0], instruction_data_string_split[1], instruction_data_string_split[2], "G");
 
     Ok(())
 }
@@ -60,7 +83,7 @@ mod test {
         let program_id = Pubkey::default();
         let key = Pubkey::default();
         let mut lamports = 0;
-        let mut data = vec![0; mem::size_of::<u32>()];
+        let mut data = vec![0; mem::size_of::<i32>()];
         let owner = Pubkey::default();
         let account = AccountInfo::new(
             &key,
