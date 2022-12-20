@@ -447,6 +447,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "calculator"
+version = "0.0.1"
+dependencies = [
+ "borsh",
+ "borsh-derive",
+ "solana-program",
+ "solana-program-test",
+ "solana-sdk",
+]
+
+[[package]]
 name = "caps"
 version = "0.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2977,17 +2988,6 @@ dependencies = [
  "tokio",
  "tokio-serde",
  "tokio-stream",
-]
-
-[[package]]
-name = "solana-bpf-helloworld"
-version = "0.0.1"
-dependencies = [
- "borsh",
- "borsh-derive",
- "solana-program",
- "solana-program-test",
- "solana-sdk",
 ]
 
 [[package]]

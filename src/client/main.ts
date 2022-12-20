@@ -1,35 +1,26 @@
-/**
- * Hello world
- */
-
- import {
+import {
   establishConnection,
   establishPayer,
   checkProgram,
-  sayHello,
-  reportGreetings,
-} from './hello_world';
+  passData,
+  getResult,
+} from './computation';
 import {question} from 'readline-sync'; //npm install --save readline-sync || npm i --save-dev @types/readline-sync
 
-let first_number: string = "a";
-let second_number: string = "a";
-let operation: string = "a";
+let first_number: String = "a";
+let second_number: String = "a";
+let operation: String = "a";
 let is_set_op: Boolean = false;
 
 async function main() {
   console.log("MODULE 4 - FINAL PROJECT");
-  // Establish connection to the cluster
   await establishConnection();
-
-  // Determine who pays for the fees
   await establishPayer();
-
-  // Check if the program has been deployed
   await checkProgram();
 
-  let view_last = question("View previous computation? Y/N >> ");
+  let view_last = question("View previous answer? Y/N >> ");
   if(view_last === "Y" || view_last === "y") {
-    await reportGreetings();
+    await getResult();
     return;
   }else{
     while(isNaN(first_number as any) || first_number === "") {
@@ -47,12 +38,10 @@ async function main() {
     }
   }
     
+  await passData(first_number, second_number, operation);
+  await getResult();
 
-  // Say hello to an account
-  await sayHello(first_number, second_number, operation);
-
-  // Find out how many times that account has been greeted
-  await reportGreetings();
+  console.log('Success');
 }
 
 main().then(
