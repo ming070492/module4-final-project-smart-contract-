@@ -157,7 +157,7 @@ export async function passData(num1: any, num2: any, op: any): Promise<void> {
 export async function getResult(): Promise<void> {
   const storageAccountInfo = await connection.getAccountInfo(resultStorageAccountPubkey);
   if (storageAccountInfo === null) {
-    throw 'Error: cannot find the greeted account';
+    throw 'Error: cannot find the storage account for the data input by the user';
   }
   const result = borsh.deserialize(
     ComputationResultSchema,
